@@ -38,22 +38,35 @@ naive d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [1..], isSquare $ n + d
         
 solve :: Integer -> Integer -> [(Integer, Integer)]
 solve d n
-    | (n == (-1)) && (even l) = []
-    | (n == (-1)) && (odd l)  = h d x  y  x' y'
-    | (n ==   1 ) && (even l) = h d x  y  x  y
-    | (n ==   1 ) && (odd l)  = h d x' y' x' y'
+    | (    n == (-1)) && (even l1)        = []
+    | (    n == (-1))                     = h1 d x1  y1  x1' y1'
+    | (    n ==   1 ) && (even l1)        = h1 d x1  y1  x1  y1
+    | (    n ==   1 )                     = h1 d x1' y1' x1' y1'
+    | (    n == (-4)) && (even l4)        = []
+    | (    n == (-4))                     = h4 d x4  y4  x4' y4'
+    | (    n ==   4 ) && (even l4)        = h4 d x4  y4  x4  y4
+    | (    n ==   4 )                     = h4 d x4' y4' x4' y4'
+    | (abs n ==   4 ) && (d `mod` 4 == 0) = map (\(x, y) -> (2 * x,     y)) $ solve (d `div` 4) (n `div` 4)
+    | (abs n ==   4 )                     = map (\(x, y) -> (2 * x, 2 * y)) $ solve  d          (n `div` 4)
     where
         
-        (l, x, y) =
+        (l1, x1, y1) = f 0 1 1
+        (x1', y1')   = (x1^2 + d * y1^2, 2 * x1 * y1)                
+    
+        (l4, x4, y4) = f 1 2 2
+        (x4', y4')   = ((x4^2 + d * y4^2) `div` 2, x4 * y4)
+    
+        f :: Integer -> Integer -> Integer -> (Integer, Integer, Integer)
+        f p0 q0 q' =
             let
-                pq  = pqa 0 1 d
-                (l, _, x, y) = head $ filter (\(_, qq, _, _) -> qq == 1) $ zipWith3 (\i x y -> (i, q x, g y, b y)) [1..] (tail pq) pq
+                pq  = pqa p0 q0 d
+                (l, _, x, y) = head $ filter (\(_, qq, _, _) -> qq == q') $ zipWith3 (\i x y -> (i, q x, g y, b y)) [1..] (tail pq) pq
             in
                 (l, x, y)
 
-        (x', y')  = (x^2 + d * y^2, 2 * x * y)                
-    
-        h :: Integer -> Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
-        h d x0 y0 t u = let xys = (x0, y0) : [(t * x + u * y * d, t * y + u * x) | (x, y) <- xys] in xys
-    
-    
+        h :: Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
+        h r d x0 y0 t u = let xys = (x0, y0) : [((t * x + u * y * d) `div` r, (t * y + u * x) `div` r) | (x, y) <- xys] in xys
+        
+        h1, h4 :: Integer -> Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
+        h1 = h 1
+        h4 = h 2
