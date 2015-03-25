@@ -1,5 +1,6 @@
 module Math.NumberTheory.Pell where
 
+import Data.List (transpose)
 import Data.Ratio ((%))
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
 
@@ -35,7 +36,7 @@ pqa p0 q0 d
         
 naive :: Integer -> Integer -> [(Integer, Integer)]
 naive d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [1..], isSquare $ n + d * y^2] 
-        
+     
 solve :: Integer -> Integer -> [(Integer, Integer)]
 solve d n
     | (    n == (-1)) && (even l1)        = []
@@ -48,6 +49,7 @@ solve d n
     | (    n ==   4 )                     = h4 d x4' y4' x4' y4'
     | (abs n ==   4 ) && (d `mod` 4 == 0) = map (\(x, y) -> (2 * x,     y)) $ solve (d `div` 4) (n `div` 4)
     | (abs n ==   4 )                     = map (\(x, y) -> (2 * x, 2 * y)) $ solve  d          (n `div` 4)
+    | (1 < n * n) && (n * n < d)          = let xys = (1, 0) : solve d 1 in interleave $ map (\(r, s) -> expand d r s xys) $ ltD d n
     where
         
         (l1, x1, y1) = f 0 1 1
@@ -70,3 +72,17 @@ solve d n
         h1, h4 :: Integer -> Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
         h1 = h 1
         h4 = h 2
+        
+        ltD :: Integer -> Integer -> [(Integer, Integer)]     
+        ltD d n = map (\(gg, bb, _, f2) -> let f = integerSquareRoot f2 in (f * gg, f * bb)) gbf2 where
+            pq  = pqa 0 1 d
+            lxy = zipWith3 (\l x y -> (l, q x, g y, b y)) [1..] (tail pq) pq
+            gbs = map (\(_, _, gg, bb) -> (gg, bb, gg^2 - d * bb^2)) $ takeWhile (\(l, qq, gg, bb) -> ((qq /= 1) || (odd l))) lxy
+            gbf2 = filter (\(_, _, gb, f2) -> (gb * f2 == n) && (isSquare f2)) $ map (\(gg, bb, gb) -> (gg, bb, gb, n `div` gb)) gbs
+        
+        interleave :: [[a]] -> [a]
+        interleave = concat . transpose
+        
+        expand :: Integer -> Integer -> Integer -> [(Integer, Integer)] -> [(Integer, Integer)]
+        expand d r s = map (\(t, u) -> (r * t + s * u * d, r * u + s * t))
+        
