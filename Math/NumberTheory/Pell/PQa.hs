@@ -19,8 +19,10 @@ pqa :: Integer -> Integer -> Integer -> [PQa]
 pqa p0 q0 d
     | q0 == 0                  = error "Q0 must not be zero."
     | d <= 0                   = error "D must be positive."
-    | isSquare d               = error $ "D must not be a square, but D = " ++ (show dd) ++ "^2."
-    | (p0^2 - d) `mod` q0 /= 0 = error "P0^2 must be equivalent to D modulo Q0."
+    | isSquare d               = error $ "D must not be a square, but D == " ++ (show dd) ++ "^2."
+    | (p0^2 - d) `mod` q0 /= 0 = error $ "P0^2 must be equivalent to D modulo Q0, but " 
+                                            ++ (show p0) ++ "^2 == " ++ (show $ p0 `mod` q0) ++ " /= " ++ (show $ d `mod` q0) 
+                                            ++ " == " ++ (show d) ++ " (mod " ++ (show q0) ++ ")"
     | otherwise                = go p0 q0 (PQa 0 1 (-p0) undefined undefined undefined) (PQa 1 0 q0 undefined undefined undefined)
     where
         dd = integerSquareRoot d

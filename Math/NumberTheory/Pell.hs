@@ -24,21 +24,21 @@ equivalent d n (x, y) (r, s) = (f $ x * r - d * y * s) && (f $ x * s - y * r) wh
     
 solve :: Integer -> Integer -> [(Integer, Integer)]
 solve d n
-    | d <= 0                              = error "D must be positive."
-    | isSquare d                          = error $ "D must not be a square, but D = " ++ (show $ integerSquareRoot d) ++ "^2."
-    | n == 0                              = error "N must not be zero."
-    | (    n == (-1)) && (even l1)        = []
-    | (    n == (-1))                     = h1 d x1  y1  x1' y1'
-    | (    n ==   1 ) && (even l1)        = h1 d x1  y1  x1  y1
-    | (    n ==   1 )                     = h1 d x1' y1' x1' y1'
-    | (    n == (-4)) && (even l4)        = []
-    | (    n == (-4))                     = h4 d x4  y4  x4' y4'
-    | (    n ==   4 ) && (even l4)        = h4 d x4  y4  x4  y4
-    | (    n ==   4 )                     = h4 d x4' y4' x4' y4'
-    | (abs n ==   4 ) && (d `mod` 4 == 0) = map (\(x, y) -> (2 * x,     y)) $ solve (d `div` 4) (n `div` 4)
-    | (abs n ==   4 )                     = map (\(x, y) -> (2 * x, 2 * y)) $ solve  d          (n `div` 4)
-    | (1 < n * n) && (n * n < d)          = let xys = (1, 0) : solve d 1 in interleave $ map (\(r, s) -> expand d r s xys) $ ltD d n
-    | otherwise                           = undefined
+    | d <= 0                                           = error "D must be positive."
+    | isSquare d                                       = error $ "D must not be a square, but D == " ++ (show $ integerSquareRoot d) ++ "^2."
+    | n == 0                                           = error "N must not be zero."
+    | (    n == (-1)) && (even l1)                     = []
+    | (    n == (-1))                                  = h1 d x1  y1  x1' y1'
+    | (    n ==   1 ) && (even l1)                     = h1 d x1  y1  x1  y1
+    | (    n ==   1 )                                  = h1 d x1' y1' x1' y1'
+    | (    n == (-4)) && (d `mod` 4 == 1) && (even l4) = []
+    | (    n == (-4)) && (d `mod` 4 == 1)              = h4 d x4  y4  x4' y4'
+    | (    n ==   4 ) && (d `mod` 4 == 1) && (even l4) = h4 d x4  y4  x4  y4
+    | (    n ==   4 ) && (d `mod` 4 == 1)              = h4 d x4' y4' x4' y4'
+    | (abs n ==   4 ) && (d `mod` 4 == 0)              = map (\(x, y) -> (2 * x,     y)) $ solve (d `div` 4) (n `div` 4)
+    | (abs n ==   4 )                                  = map (\(x, y) -> (2 * x, 2 * y)) $ solve  d          (n `div` 4)
+    | (1 < n * n) && (n * n < d)                       = let xys = (1, 0) : solve d 1 in interleave $ map (\(r, s) -> expand d r s xys) $ ltD d n
+    | otherwise                                        = undefined
     where
         
         (l1, x1, y1) = f 0 1 1
