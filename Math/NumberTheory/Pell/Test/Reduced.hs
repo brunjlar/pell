@@ -1,20 +1,8 @@
-module Main where
+module Math.NumberTheory.Pell.Test.Reduced ( prop_reduced ) where
 
-import Math.NumberTheory.Pell
+import Math.NumberTheory.Pell.PQa (reduced)
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
-import System.Exit (exitFailure)
 import Test.QuickCheck
-
-main :: IO ()
-main = do
-    test prop_reduced
-        
-test :: Testable p => p -> IO ()
-test p = do
-    result <- quickCheckWithResult (stdArgs { maxSuccess = 1000, maxDiscardRatio = 100 }) p
-    case result of
-        Success _ _ _ -> return ()
-        _ -> exitFailure
         
 type Triple = (Integer, Integer, Integer)
 
