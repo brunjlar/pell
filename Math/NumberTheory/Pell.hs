@@ -1,8 +1,11 @@
-module Math.NumberTheory.Pell where
+module Math.NumberTheory.Pell ( reduced, solve ) where
 
-import Data.List (transpose)
+import Data.List (sort, transpose)
 import Data.Ratio ((%))
+import Data.Set (toList)
+import Math.NumberTheory.Moduli (sqrtModFList)
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
+import Math.NumberTheory.Primes.Factorisation (divisors, factorise)
 
 data PQa = PQa {
     a  :: Integer,
@@ -16,7 +19,7 @@ pqa :: Integer -> Integer -> Integer -> [PQa]
 pqa p0 q0 d
     | q0 == 0                  = error "Q0 must not be zero."
     | d <= 0                   = error "D must be positive."
-    | isSquare d               = error $ "D must not be a square, but " ++ (show d) ++ " = " ++ (show dd) ++ "^2."
+    | isSquare d               = error $ "D must not be a square, but D = " ++ (show dd) ++ "^2."
     | (p0^2 - d) `mod` q0 /= 0 = error "P0^2 must be equivalent to D modulo Q0."
     | otherwise                = go p0 q0 (PQa 0 1 (-p0) undefined undefined undefined) (PQa 1 0 q0 undefined undefined undefined)
     where
@@ -33,12 +36,31 @@ pqa p0 q0 d
                 z   = (PQa _a _b _g _a' p q)
             in
                 z : (go _p _q y z)
-        
+
+reduced :: Integer -> Integer -> Integer -> Bool
+reduced p q dd
+    | q > 0     = (dd >= q - p) && (dd <  p + q) && (dd >= p)
+    | otherwise = (dd <  q - p) && (dd >= p + q) && (dd <  p) 
+                     
 naive :: Integer -> Integer -> [(Integer, Integer)]
 naive d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [1..], isSquare $ n + d * y^2] 
      
+fmzs :: Integer -> Integer -> [(Integer, Integer, [Integer])]
+fmzs d n = map (\f -> let m = n `div` (f^2) in (f, m, zs m)) $ filter (\f -> (n `mod` (f^2)) == 0) $ toList $ divisors n where
+    zs m = sort $ map norm $ sqrtModFList d $ factorise am where
+        am  = abs m
+        am2 = floor (am % 2)
+        norm a = if a <= am2 then a else a - am
+     
+equivalent :: Integer -> Integer -> (Integer, Integer) -> (Integer, Integer) -> Bool
+equivalent d n (x, y) (r, s) = (f $ x * r - d * y * s) && (f $ x * s - y * r) where
+    f x = (x `mod` n) == 0
+    
 solve :: Integer -> Integer -> [(Integer, Integer)]
 solve d n
+    | d <= 0                              = error "D must be positive."
+    | isSquare d                          = error $ "D must not be a square, but D = " ++ (show $ integerSquareRoot d) ++ "^2."
+    | n == 0                              = error "N must not be zero."
     | (    n == (-1)) && (even l1)        = []
     | (    n == (-1))                     = h1 d x1  y1  x1' y1'
     | (    n ==   1 ) && (even l1)        = h1 d x1  y1  x1  y1
@@ -50,6 +72,7 @@ solve d n
     | (abs n ==   4 ) && (d `mod` 4 == 0) = map (\(x, y) -> (2 * x,     y)) $ solve (d `div` 4) (n `div` 4)
     | (abs n ==   4 )                     = map (\(x, y) -> (2 * x, 2 * y)) $ solve  d          (n `div` 4)
     | (1 < n * n) && (n * n < d)          = let xys = (1, 0) : solve d 1 in interleave $ map (\(r, s) -> expand d r s xys) $ ltD d n
+    | otherwise                           = undefined
     where
         
         (l1, x1, y1) = f 0 1 1
