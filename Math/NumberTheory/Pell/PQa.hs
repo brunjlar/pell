@@ -1,7 +1,8 @@
 module Math.NumberTheory.Pell.PQa (
     PQa(..),
     pqa,
-    reduced ) where
+    reduced, 
+    period ) where
 
 import Data.Ratio ((%))
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
@@ -40,3 +41,13 @@ reduced :: Integer -> Integer -> Integer -> Bool
 reduced p q dd
     | q > 0     = (dd >= q - p) && (dd <  p + q) && (dd >= p)
     | otherwise = (dd <  q - p) && (dd >= p + q) && (dd <  p)
+    
+period :: Integer -> Integer -> Integer -> (Int, [PQa])
+period p0 q0 d = g [] 0 $ pqa p0 q0 d where
+    dd = integerSquareRoot d
+    g acc i (x : xs)
+        | reduced (p x) (q x) dd = h (x : acc) i (p x) (q x) xs
+        | otherwise              = g (x : acc) (succ i) xs
+    h acc i pp qq (x : xs)
+        | (pp == p x) && (qq == q x) = (i, reverse acc)
+        | otherwise                  = h (x : acc) i pp qq xs
