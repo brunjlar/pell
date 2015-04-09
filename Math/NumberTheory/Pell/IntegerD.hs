@@ -1,7 +1,10 @@
 module Math.NumberTheory.Pell.IntegerD (
-    D,
     IntegerD,
+    getD,
     root,
+    conjugate,
+    norm,
+    trace,
     toPair,
     toDouble) where
 
@@ -17,8 +20,22 @@ makeD d
     
 data IntegerD = Pure Integer | Mixed Integer Integer D deriving Eq
 
+getD :: IntegerD -> Maybe Integer
+getD (Pure _)          = Nothing
+getD (Mixed _ _ (D d)) = Just d
+
 root :: Integer -> IntegerD
 root d = Mixed 0 1 (makeD d)
+
+conjugate :: IntegerD -> IntegerD
+conjugate (Pure x) = Pure x
+conjugate (Mixed x y d) = Mixed x (-y) d
+
+norm :: IntegerD -> Integer
+norm x = let (Pure n) = x * (conjugate x) in n
+
+trace :: IntegerD -> Integer
+trace x = let (Pure t) = x + (conjugate x) in t
 
 toPair :: IntegerD -> (Integer, Integer)
 toPair (Pure x)      = (x, 0)
