@@ -1,6 +1,9 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Math.NumberTheory.Pell.Test.IntegerD where
 
 import Math.NumberTheory.Pell.IntegerD
+import Math.NumberTheory.Pell.Test.Utils ((~~))
 import Math.NumberTheory.Powers.Squares (isSquare)
 import Test.QuickCheck
 
@@ -42,5 +45,17 @@ instance Arbitrary CompatibleDPair where
 
     shrink (CompatibleDPair (a, b)) = [CompatibleDPair (a', b') | (a', b') <- [(a', b) | a' <- shrink a] ++ [(a, b') | b' <- shrink b]]
 
-prop_norm_multiplicative :: IntegerD -> IntegerD -> Bool
-prop_norm_multiplicative x y = norm (x * y) == (norm x) * (norm y)
+op_to_prop :: (forall a . (Num a) => a -> a -> a) -> CompatibleDPair -> Property
+op_to_prop op (CompatibleDPair (x, y)) = (toDouble $ x `op` y) ~~ ((toDouble x) `op` (toDouble y)) 
+
+prop_plus :: CompatibleDPair -> Property
+prop_plus = op_to_prop (+)
+
+prop_minus :: CompatibleDPair -> Property
+prop_minus = op_to_prop (-)
+
+prop_times :: CompatibleDPair -> Property
+prop_times = op_to_prop (*)
+
+prop_norm_multiplicative :: CompatibleDPair -> Property
+prop_norm_multiplicative (CompatibleDPair (x, y)) = norm (x * y) === (norm x) * (norm y)
