@@ -4,13 +4,37 @@ import Data.List (sort, transpose)
 import Data.Ratio ((%))
 import Data.Set (toList)
 import Math.NumberTheory.Moduli (sqrtModFList)
-import Math.NumberTheory.Pell.PQa (PQa(..), pqa)
+import Math.NumberTheory.Pell.IntegerD (IntegerD)
+import Math.NumberTheory.Pell.PQa (PQa(..), pqa, find)
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
 import Math.NumberTheory.Primes.Factorisation (divisors, factorise)
                    
 naive :: Integer -> Integer -> [(Integer, Integer)]
 naive d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [1..], isSquare $ n + d * y^2] 
      
+genAll :: IntegerD -> [IntegerD] -> [IntegerD]
+genAll _ [] = []
+genAll m xs = xs ++ (genAll m $ map (m *) xs)
+
+find1 :: Integer -> (Int, IntegerD)
+find1 d = case find (\l q -> q == 1) 0 1 d of Just lx -> lx
+
+solve_plus_1 :: Integer -> [IntegerD]
+solve_plus_1 d =
+    let
+        (l, x) = find1 d
+    in
+        if odd l then let y = x * x in genAll y [y]
+                 else genAll x [x]
+
+solve_minus_1 :: Integer -> [IntegerD]
+solve_minus_1 d =
+    let
+        (l, x) = find1 d
+    in
+        if odd l then let y = x * x in genAll y [x]
+                 else []
+
 fmzs :: Integer -> Integer -> [(Integer, Integer, [Integer])]
 fmzs d n = map (\f -> let m = n `div` (f^2) in (f, m, zs m)) $ filter (\f -> (n `mod` (f^2)) == 0) $ toList $ divisors n where
     zs m = sort $ map norm $ sqrtModFList d $ factorise am where
