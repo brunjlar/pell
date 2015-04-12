@@ -6,7 +6,8 @@ module Math.NumberTheory.Pell.IntegerD (
     norm,
     trace,
     toPair,
-    toDouble) where
+    toDouble,
+    halve) where
 
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
 
@@ -102,9 +103,13 @@ instance Num IntegerD where
         
     abs a                            = a * signum a
     
+instance Ord IntegerD where
+    a <= b = (signum $ b - a) /= (-1)
+
 toDouble :: IntegerD -> Double
 toDouble (Pure x)          = fromInteger x
 toDouble (Mixed x y (D d)) = (fromInteger x) + (fromInteger y) * (sqrt $ fromInteger d)
 
-instance Ord IntegerD where
-    a <= b = (signum $ b - a) /= (-1)
+halve :: IntegerD -> IntegerD
+halve (Pure x)          = Pure $ x `div` 2
+halve (Mixed x y (D d)) = Mixed (x `div` 2) (y `div` 2) (D d)

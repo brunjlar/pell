@@ -4,7 +4,7 @@ import Data.List (sort, transpose)
 import Data.Ratio ((%))
 import Data.Set (toList)
 import Math.NumberTheory.Moduli (sqrtModFList)
-import Math.NumberTheory.Pell.IntegerD (IntegerD)
+import Math.NumberTheory.Pell.IntegerD (IntegerD, halve)
 import Math.NumberTheory.Pell.PQa (PQa(..), pqa, find)
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
 import Math.NumberTheory.Primes.Factorisation (divisors, factorise)
@@ -12,28 +12,59 @@ import Math.NumberTheory.Primes.Factorisation (divisors, factorise)
 naive :: Integer -> Integer -> [(Integer, Integer)]
 naive d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [1..], isSquare $ n + d * y^2] 
      
-genAll :: IntegerD -> [IntegerD] -> [IntegerD]
+genAll :: (IntegerD -> IntegerD) -> [IntegerD] -> [IntegerD]
 genAll _ [] = []
-genAll m xs = xs ++ (genAll m $ map (m *) xs)
+genAll f xs = xs ++ (genAll f $ map f xs)
+
+genAll1 :: IntegerD -> [IntegerD] -> [IntegerD]
+genAll1 x = genAll (x *)
+
+
+genAll4 :: IntegerD -> [IntegerD] -> [IntegerD]
+genAll4 x = genAll $ halve . (x *)
 
 find1 :: Integer -> (Int, IntegerD)
-find1 d = case find (\l q -> q == 1) 0 1 d of Just lx -> lx
+find1 d = find (\l q -> q == 1) 0 1 d 
+
+find4 :: Integer -> (Int, IntegerD)
+find4 d = find (\l q -> q == 2) 1 2 d 
 
 solve_plus_1 :: Integer -> [IntegerD]
 solve_plus_1 d =
     let
         (l, x) = find1 d
     in
-        if odd l then let y = x * x in genAll y [y]
-                 else genAll x [x]
+        if odd l then let y = x * x in genAll1 y [y]
+                 else genAll1 x [x]
 
 solve_minus_1 :: Integer -> [IntegerD]
 solve_minus_1 d =
     let
         (l, x) = find1 d
     in
-        if odd l then let y = x * x in genAll y [x]
+        if odd l then let y = x * x in genAll1 y [x]
                  else []
+
+solve_plus_4 :: Integer -> [IntegerD]
+solve_plus_4 d
+    | (d `mod` 4) == 1 = 
+        let
+            (l, x) = find4 d
+        in
+            if odd l then let y = halve $ x * x in genAll4 y [y]
+                     else genAll4 x [x]
+    | otherwise        = undefined
+
+
+solve_minus_4 :: Integer -> [IntegerD]
+solve_minus_4 d
+    | (d `mod` 4) == 1 = 
+        let
+            (l, x) = find4 d
+        in
+            if odd l then let y = halve $ x * x in genAll4 y [x]
+                     else []
+    | otherwise        = undefined
 
 fmzs :: Integer -> Integer -> [(Integer, Integer, [Integer])]
 fmzs d n = map (\f -> let m = n `div` (f^2) in (f, m, zs m)) $ filter (\f -> (n `mod` (f^2)) == 0) $ toList $ divisors n where

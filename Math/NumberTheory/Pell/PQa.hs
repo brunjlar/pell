@@ -56,9 +56,8 @@ period p0 q0 d = g [] 0 $ pqa p0 q0 d where
         | (pp == p x) && (qq == q x) = (i, reverse acc)
         | otherwise                  = h (x : acc) i pp qq xs
 
-find :: (Int -> Integer -> Bool) -> Integer -> Integer -> Integer -> Maybe (Int, IntegerD)
-find plq p0 q0 d = go 1 $ let (_, xs) = period p0 q0 d in zip (tail xs) xs where
-    go l []            = Nothing
+find :: (Int -> Integer -> Bool) -> Integer -> Integer -> Integer -> (Int, IntegerD)
+find plq p0 q0 d = go 1 $ let xs = pqa p0 q0 d in zip (tail xs) xs where
     go l ((y, z) : ys) 
-        | plq l (q y)  = Just (l, (fromInteger $ g z) + (fromInteger $ b z) * root d)
+        | plq l (q y)  = (l, (fromInteger $ g z) + (fromInteger $ b z) * root d)
         | otherwise    = go (succ l) ys
