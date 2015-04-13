@@ -1,5 +1,6 @@
 module Math.NumberTheory.Pell ( solve ) where
 
+import Control.Arrow (first, (***))
 import Data.List (sort, transpose)
 import Data.Ratio ((%))
 import Data.Set (toList)
@@ -28,8 +29,8 @@ representatives d n
     where
 
         find1, find4 :: Integer -> (Int, IntegerD)
-        find1 d = find (\l q -> q == 1) 0 1 d 
-        find4 d = find (\l q -> q == 2) 1 2 d 
+        find1 = find (\l q -> q == 1) 0 1 
+        find4 = find (\l q -> q == 2) 1 2 
         
         d4 = d `mod` 4
 
@@ -41,49 +42,14 @@ representatives d n
                     (x, y) = toPair xy
                     Just d = getD xy
                 in 
-                    (fromInteger $ 2 * x) + (fromInteger y) * (root $ 4 * d) 
+                    fromInteger (2 * x) + fromInteger y * root (4 * d) 
 
 allSolutions :: Integer -> Integer -> [IntegerD]
 allSolutions d n = case representatives d n of
     [] -> []
     xs -> go xs where
         x     = fundamentalSolution d
-        go ys = ys ++ (go $ map (x *) ys)
-
-
-
--- solve_plus_4 :: Integer -> [IntegerD]
--- solve_plus_4 d
---     | (d `mod` 4) == 1 = 
---         let
---             (l, x) = find4 d
---         in
---             if odd l then let y = halve $ x * x in genAll4 y [y]
---                      else genAll4 x [x]
---     | (d `mod` 4) `elem` [2, 3] = 
---         let
---             x = 2 * (head $ solve_plus_1 d)
---         in
---             genAll4 x [x]
---     | otherwise = undefined
--- 
--- solve_minus_4 :: Integer -> [IntegerD]
--- solve_minus_4 d
---     | (d `mod` 4) == 1 = 
---         let
---             (l, x) = find4 d
---         in
---             if odd l then let y = halve $ x * x in genAll4 y [x]
---                      else []
---     | (d `mod` 4) `elem` [2, 3] = case solve_minus_1 d of
---         [] -> []
---         (x : xa) ->
---             let
---                 xx = 2 * x
---                 yy = 2 * x * x
---             in
---                 genAll4 yy [xx]
---     | otherwise        = undefined
+        go ys = ys ++ go (map (x *) ys)
 
 fmzs :: Integer -> Integer -> [(Integer, Integer, [Integer])]
 fmzs d n = map (\f -> let m = n `div` (f^2) in (f, m, zs m)) $ filter (\f -> (n `mod` (f^2)) == 0) $ toList $ divisors n where
@@ -93,24 +59,25 @@ fmzs d n = map (\f -> let m = n `div` (f^2) in (f, m, zs m)) $ filter (\f -> (n 
         norm a = if a <= am2 then a else a - am
      
 equivalent :: Integer -> Integer -> (Integer, Integer) -> (Integer, Integer) -> Bool
-equivalent d n (x, y) (r, s) = (f $ x * r - d * y * s) && (f $ x * s - y * r) where
+equivalent d n (x, y) (r, s) = f (x * r - d * y * s) && f (x * s - y * r) where
     f x = (x `mod` n) == 0
     
 solve :: Integer -> Integer -> [(Integer, Integer)]
 solve d n
     | d <= 0                                           = error "D must be positive."
-    | isSquare d                                       = error $ "D must not be a square, but D == " ++ (show $ integerSquareRoot d) ++ "^2."
+    | isSquare d                                       = error $ "D must not be a square, but D == " ++ 
+                                                                 show (integerSquareRoot d) ++ "^2."
     | n == 0                                           = error "N must not be zero."
-    | (    n == (-1)) && (even l1)                     = []
-    | (    n == (-1))                                  = h1 d x1  y1  x1' y1'
-    | (    n ==   1 ) && (even l1)                     = h1 d x1  y1  x1  y1
-    | (    n ==   1 )                                  = h1 d x1' y1' x1' y1'
-    | (    n == (-4)) && (d `mod` 4 == 1) && (even l4) = []
+    | (    n == (-1)) && even l1                       = []
+    |      n == (-1)                                   = h1 d x1  y1  x1' y1'
+    | (    n ==   1 ) && even l1                       = h1 d x1  y1  x1  y1
+    |     n ==   1                                     = h1 d x1' y1' x1' y1'
+    | (    n == (-4)) && (d `mod` 4 == 1) && even l4   = []
     | (    n == (-4)) && (d `mod` 4 == 1)              = h4 d x4  y4  x4' y4'
-    | (    n ==   4 ) && (d `mod` 4 == 1) && (even l4) = h4 d x4  y4  x4  y4
+    | (    n ==   4 ) && (d `mod` 4 == 1) && even l4   = h4 d x4  y4  x4  y4
     | (    n ==   4 ) && (d `mod` 4 == 1)              = h4 d x4' y4' x4' y4'
-    | (abs n ==   4 ) && (d `mod` 4 == 0)              = map (\(x, y) -> (2 * x,     y)) $ solve (d `div` 4) (n `div` 4)
-    | (abs n ==   4 )                                  = map (\(x, y) -> (2 * x, 2 * y)) $ solve  d          (n `div` 4)
+    | (abs n ==   4 ) && (d `mod` 4 == 0)              = map (first (2 *)) $ solve (d `div` 4) (n `div` 4)
+    |  abs n ==   4                                    = map ((2 *) *** (2 *)) $ solve  d          (n `div` 4)
     | (1 < n * n) && (n * n < d)                       = let xys = (1, 0) : solve d 1 in interleave $ map (\(r, s) -> expand d r s xys) $ ltD d n
     | otherwise                                        = undefined
     where
@@ -140,8 +107,8 @@ solve d n
         ltD d n = map (\(gg, bb, _, f2) -> let f = integerSquareRoot f2 in (f * gg, f * bb)) gbf2 where
             pq  = pqa 0 1 d
             lxy = zipWith3 (\l x y -> (l, q x, g y, b y)) [1..] (tail pq) pq
-            gbs = map (\(_, _, gg, bb) -> (gg, bb, gg^2 - d * bb^2)) $ takeWhile (\(l, qq, gg, bb) -> ((qq /= 1) || (odd l))) lxy
-            gbf2 = filter (\(_, _, gb, f2) -> (gb * f2 == n) && (isSquare f2)) $ map (\(gg, bb, gb) -> (gg, bb, gb, n `div` gb)) gbs
+            gbs = map (\(_, _, gg, bb) -> (gg, bb, gg^2 - d * bb^2)) $ takeWhile (\(l, qq, gg, bb) -> ((qq /= 1) || odd l)) lxy
+            gbf2 = filter (\(_, _, gb, f2) -> (gb * f2 == n) && isSquare f2) $ map (\(gg, bb, gb) -> (gg, bb, gb, n `div` gb)) gbs
         
         interleave :: [[a]] -> [a]
         interleave = concat . transpose

@@ -7,7 +7,7 @@ import Test.QuickCheck
 data Triple = Triple Integer Integer Integer deriving (Show, Eq)
 
 isProperTriple :: Triple -> Bool
-isProperTriple (Triple p q d) = (q /= 0) && (d > 0) && (not $ isSquare d)
+isProperTriple (Triple p q d) = (q /= 0) && (d > 0) && not (isSquare d)
 
 toDouble :: Triple -> (Double, Double)
 toDouble (Triple p q d) =

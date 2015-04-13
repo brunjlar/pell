@@ -2,20 +2,21 @@
 
 module Math.NumberTheory.Pell.Test.IntegerD where
 
+import Control.Monad (liftM)
 import Math.NumberTheory.Pell.IntegerD
 import Math.NumberTheory.Pell.Test.Utils ((~~))
 import Math.NumberTheory.Powers.Squares (isSquare)
 import Test.QuickCheck
 
 genD :: Gen Integer
-genD = suchThat arbitrary $ \d -> (d > 0) && (not $ isSquare d)
+genD = suchThat arbitrary $ \d -> (d > 0) && not (isSquare d)
        
 fromTriple :: Integer -> Integer -> Integer -> IntegerD
-fromTriple x y d = (fromInteger x) + (fromInteger y) * (root d)
+fromTriple x y d = fromInteger x + fromInteger y * root d
 
 genIntegerD :: Integer -> Gen IntegerD
 genIntegerD d = oneof [
-    arbitrary >>= return . fromInteger,
+    liftM fromInteger arbitrary,
     do
         x <- arbitrary
         y <- arbitrary
@@ -45,17 +46,17 @@ instance Arbitrary CompatibleDPair where
 
     shrink (CompatibleDPair (a, b)) = [CompatibleDPair (a', b') | (a', b') <- [(a', b) | a' <- shrink a] ++ [(a, b') | b' <- shrink b]]
 
-op_to_prop :: (forall a . (Num a) => a -> a -> a) -> CompatibleDPair -> Property
-op_to_prop op (CompatibleDPair (x, y)) = (toDouble $ x `op` y) ~~ ((toDouble x) `op` (toDouble y)) 
+opToProp :: (forall a . (Num a) => a -> a -> a) -> CompatibleDPair -> Property
+opToProp op (CompatibleDPair (x, y)) = toDouble (x `op` y) ~~ (toDouble x `op` toDouble y) 
 
 prop_plus :: CompatibleDPair -> Property
-prop_plus = op_to_prop (+)
+prop_plus = opToProp (+)
 
 prop_minus :: CompatibleDPair -> Property
-prop_minus = op_to_prop (-)
+prop_minus = opToProp (-)
 
 prop_times :: CompatibleDPair -> Property
-prop_times = op_to_prop (*)
+prop_times = opToProp (*)
 
 prop_norm_multiplicative :: CompatibleDPair -> Property
-prop_norm_multiplicative (CompatibleDPair (x, y)) = norm (x * y) === (norm x) * (norm y)
+prop_norm_multiplicative (CompatibleDPair (x, y)) = norm (x * y) === norm x * norm y

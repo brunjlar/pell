@@ -9,7 +9,7 @@ import Test.QuickCheck
 data Problem = Problem { d :: Integer, n :: Integer } deriving (Show, Eq)
 
 isProperD :: Integral a => a -> Bool
-isProperD n = (n > 0) && (not $ isSquare n)
+isProperD n = (n > 0) && not (isSquare n)
 
 genD :: Gen Integer
 genD = scale (* 2) $ suchThat arbitrary isProperD
@@ -39,7 +39,7 @@ prop_isSolution (Problem d n) =
     classify (n == (-1))                 "n == -1"     $ 
     classify (n ==   4)                  "n ==  4"     $
     classify (n == (-4))                 "n == -4"     $
-    classify (not $ abs n `elem` [1, 4]) "|n| /= 1, 4" $
+    classify (abs n `notElem` [1, 4]) "|n| /= 1, 4" $
     classify (n^2 < d)                   "n^2 < d"     $
     classify (n^2 > d)                   "n^2 > d"     $
     classify (d <= 100)                  "d <= 100"    $
