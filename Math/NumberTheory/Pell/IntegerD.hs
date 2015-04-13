@@ -69,30 +69,32 @@ positive (Mixed x y (D d))
     
 instance Num IntegerD where
 
-    (Pure x)      + (Pure x')        = Pure (x + x')
-    (Pure x)      + (Mixed x' y' d') = Mixed (x + x') y' d'
-    (Mixed x y d) + (Mixed x' y' d')
-        | d /= d'                    = error "Can't add elements of different fields."
-        | y == (-y')                 = Pure (x + x')
-        | otherwise                  = Mixed (x + x') (y + y') d
-    a             + b                = b + a
+    (Pure x)      + (Pure x')            = Pure (x + x')
+    (Pure x)      + (Mixed x' y' d')     = Mixed (x + x') y' d'
+    a@(Mixed x y d) + b@(Mixed x' y' d')
+        | d /= d'                        = error $ "Can't add elements " ++ (show a) ++ " and " ++ (show b) ++
+                                                   " of different fields."
+        | y == (-y')                     = Pure (x + x')
+        | otherwise                      = Mixed (x + x') (y + y') d
+    a             + b                    = b + a
 
-    (Pure x)      * (Pure x')        = Pure (x * x')
+    (Pure x)      * (Pure x')            = Pure (x * x')
     (Pure x)      * (Mixed x' y' d')
-        | x == 0                     = Pure 0
-        | otherwise                  = Mixed (x * x') (x * y') d'
-    (Mixed x y d) * (Mixed x' y' d')
-        | d /= d'                    = error "Can't multiply elements of different fields."
-        | otherwise                  = let
+        | x == 0                         = Pure 0
+        | otherwise                      = Mixed (x * x') (x * y') d'
+    a@(Mixed x y d) * b@(Mixed x' y' d')
+        | d /= d'                        = error $ "Can't multiply elements " ++ (show a) ++ " and " ++ (show b) ++ 
+                                                   " of different fields."
+        | otherwise                      = let
                                             D dd = d
                                             x''  = x * x' + y  * y' * dd
                                             y''  = x * y' + x' * y
-                                       in
+                                           in
                                             if y'' == 0 then Pure x'' else Mixed x'' y'' d
-    a             * b                = b * a
+    a             * b                    = b * a
     
-    negate (Pure x)                  = Pure (-x)
-    negate (Mixed x y d)             = Mixed (-x) (-y) d
+    negate (Pure x)                      = Pure (-x)
+    negate (Mixed x y d)                 = Mixed (-x) (-y) d
 
     fromInteger n = Pure n
     
