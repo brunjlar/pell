@@ -1,5 +1,5 @@
 module Math.NumberTheory.Pell.Test.Solve (
-    prop_isSolution) where
+    prop_solves) where
 
 import Control.Monad (liftM2)
 import Math.NumberTheory.Pell (solve)
@@ -33,8 +33,11 @@ instance Arbitrary Problem where
     arbitrary = liftM2 Problem genD genN
     shrink (Problem d n) = [Problem d' n | d' <- shrinkD d] ++ [Problem d n' | n' <- shrinkN n]
     
-prop_isSolution :: Problem -> Property
-prop_isSolution (Problem d n) =
+naive :: Integer -> Integer -> Integer -> [(Integer, Integer)]
+naive maxY d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [1..maxY], isSquare $ n + d * y^2] 
+
+prop_solves :: Integer -> Problem -> Property
+prop_solves limit (Problem d n) =
     classify (n ==   1)                  "n ==  1"     $
     classify (n == (-1))                 "n == -1"     $ 
     classify (n ==   4)                  "n ==  4"     $
@@ -44,4 +47,4 @@ prop_isSolution (Problem d n) =
     classify (n^2 > d)                   "n^2 > d"     $
     classify (d <= 100)                  "d <= 100"    $
     classify (d >  100)                  "d >  100"    $
-    (n^2 < d) ==> all (\(x, y) -> x^2 - d * y^2 == n) $ take 20 $ solve d n
+    (takeWhile ((<= limit) . fst) $ solve d n) === (naive limit d n)
