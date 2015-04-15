@@ -17,7 +17,7 @@ extra-source-files:  README.md
 cabal-version:       >=1.22.2.0
 
 library
-  exposed-modules:     Math.NumberTheory.Pell
+  exposed-modules:     Math.NumberTheory.Pell, Math.NumberTheory.Moduli.SquareRoots
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8, arithmoi, containers

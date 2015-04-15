@@ -47,4 +47,4 @@ prop_solves limit (Problem d n) =
     classify (n^2 > d)                   "n^2 > d"     $
     classify (d <= 100)                  "d <= 100"    $
     classify (d >  100)                  "d >  100"    $
-    (takeWhile ((<= limit) . fst) $ solve d n) === (naive limit d n)
+    (takeWhile ((<= limit) . snd) $ solve d n) === (naive limit d n)

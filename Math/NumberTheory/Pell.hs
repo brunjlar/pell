@@ -4,7 +4,7 @@ import Control.Arrow (first, (***))
 import Data.List (sort, transpose, nub)
 import Data.Ratio ((%))
 import Data.Set (toList)
-import Math.NumberTheory.Moduli (sqrtModFList)
+import Math.NumberTheory.Moduli.SquareRoots (sqrts)
 import Math.NumberTheory.Pell.PQa (PQa(..), pqa, period)
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
 import Math.NumberTheory.Primes.Factorisation (divisors, factorise)
@@ -15,10 +15,13 @@ fmzs d n = map (\f -> let m = n `div` (f^2) in (f, m, zs m)) $ filter (\f -> (n 
     zs :: Integer -> [Integer]
     zs   1  = [0]
     zs (-1) = [0]
-    zs   m  = nub $ sort $ map norm $ sqrtModFList d $ factorise am where
+    zs   m  = nub $ sort $ map norm $ sqrts d am where
         am  = abs m
         am2 = floor (am % 2)
         norm a = if a <= am2 then a else a - am
+     
+mul :: Integer -> (Integer, Integer) -> (Integer, Integer) -> (Integer, Integer)
+mul d (x, y) (r, s) = (x * r + y * s * d, x * s + y * r)
      
 getRS d m z = 
     let
@@ -64,8 +67,11 @@ solve d n
     | n == 0     = error "N must not be zero."
     | otherwise  = case getReps d n of 
                     []  -> []
-                    xys -> go xys where
+                    xys -> merge $ go xys where
                         (r, s) = solve_plus_1 d
                         go xys' = (normalize xys') ++ go (step xys')
-                        normalize xys = nub $ sort $ map (\(x, y) -> (abs x, abs y)) xys
+                        normalize xys = sort $ map (\(x, y) -> (abs x, abs y)) xys
                         step = map (\(x, y) -> (x * r + y * s * d, x * s + y * r))
+                        merge (x : y : ys)
+                            | x < y     = x : (merge (y : ys))
+                            | otherwise = merge (x : ys)
