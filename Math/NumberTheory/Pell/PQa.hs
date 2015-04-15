@@ -2,11 +2,9 @@ module Math.NumberTheory.Pell.PQa (
     PQa(..),
     pqa,
     reduced, 
-    period,
-    find ) where
+    period) where
 
 import Data.Ratio ((%))
-import Math.NumberTheory.Pell.IntegerD (IntegerD, root, toPair)
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
 
 data PQa = PQa {
@@ -55,9 +53,3 @@ period p0 q0 d = g [] 0 $ pqa p0 q0 d where
     h acc i pp qq (x : xs)
         | (pp == p x) && (qq == q x) = (i, reverse acc)
         | otherwise                  = h (x : acc) i pp qq xs
-
-find :: (Int -> Integer -> Bool) -> Integer -> Integer -> Integer -> (Int, IntegerD)
-find plq p0 q0 d = go 1 $ let xs = pqa p0 q0 d in zip (tail xs) xs where
-    go l ((y, z) : ys) 
-        | plq l (q y)  = (l, fromInteger (g z) + fromInteger (b z) * root d)
-        | otherwise    = go (succ l) ys
