@@ -7,7 +7,7 @@ import Test.QuickCheck
 data Triple = Triple Integer Integer Integer deriving (Show, Eq)
 
 isProperTriple :: Triple -> Bool
-isProperTriple (Triple p q d) = (q /= 0) && (d > 0) && not (isSquare d)
+isProperTriple (Triple _ q d) = (q /= 0) && (d > 0) && not (isSquare d)
 
 toDouble :: Triple -> (Double, Double)
 toDouble (Triple p q d) =
@@ -41,7 +41,7 @@ reduced' :: Triple -> Bool
 reduced' (Triple p q d) = reduced p q (integerSquareRoot d)
         
 prop_reduced :: Triple -> Property
-prop_reduced t@(Triple p q d) =
+prop_reduced t@(Triple _ _ d) =
     counterexample (show $ toDouble t)        $
     classify (reduced' t)       "reduced"     $
     classify (not $ reduced' t) "not reduced" $
