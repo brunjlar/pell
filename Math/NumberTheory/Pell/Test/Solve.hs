@@ -1,4 +1,5 @@
 module Math.NumberTheory.Pell.Test.Solve (
+    Problem (..),
     prop_solves) where
 
 import Control.Monad (liftM2)
