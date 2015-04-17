@@ -35,7 +35,7 @@ instance Arbitrary Problem where
     shrink (Problem d n) = [Problem d' n | d' <- shrinkD d] ++ [Problem d n' | n' <- shrinkN n]
     
 naive :: Integer -> Integer -> Integer -> [(Integer, Integer)]
-naive maxY d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [1..maxY], isSquare $ n + d * y^2] 
+naive maxY d n = [(integerSquareRoot $ n + d * y^2, y) | y <- [0..maxY], isSquare $ n + d * y^2] 
 
 prop_solves :: Integer -> Problem -> Property
 prop_solves limit (Problem d n) =

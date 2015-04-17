@@ -1,4 +1,4 @@
-module Math.NumberTheory.Pell ( solve ) where
+module Math.NumberTheory.Pell ( solve, getFundamentalReps, getMinimalReps, mul, solve_plus_1 ) where
 
 import Control.Arrow (first, (***))
 import Data.List (sort, transpose, nub)
@@ -53,25 +53,31 @@ getRep d   n  f m z = case getRS d m z of
                                                         Nothing     -> Nothing
                                                         Just (t, u) -> Just (f * (r * t + s * u * d), f * (r * u + s * t))
 
-getReps d n = do
-    (f, m, zs) <- fmzs d n
-    do
-        z <- zs
-        case getRep d n f m z of
-            Just (x, y) -> return (x, y)
-            Nothing     -> []
+getFundamentalReps d n = ((r, s), fundamentalReps) where
+    (r, s) = solve_plus_1 d
+    fundamentalReps = do
+        (f, m, zs) <- fmzs d n
+        do
+            z <- zs
+            case getRep d n f m z of
+                Just (x, y) -> [if x >= 0 then (x, y) else mul d (r, s) (x, y)]
+                Nothing     -> []
+
+getMinimalReps d n = ((r, s), map toMinimal $ fundamentalReps) where
+    ((r, s), fundamentalReps) = getFundamentalReps d n
+    toMinimal (x, y) = head $ sort $ map (abs *** abs) $ filter (\(x', y') -> x' * y' >= 0) [(x, y), mul d (r, s) (x, y), mul d (r, (-s)) (x, y)]
 
 solve d n 
     | d <= 0     = error $ "D must be positive, but D == " ++ show d ++ "."
     | isSquare d = error $ "D must not be a square, but D == " ++ show (integerSquareRoot d) ++ "^2."
     | n == 0     = error "N must not be zero."
-    | otherwise  = case getReps d n of 
-                    []  -> []
-                    xys -> merge $ go xys where
-                        (r, s) = solve_plus_1 d
+    | otherwise  = case getMinimalReps d n of 
+                    (_, [])       -> []
+                    ((r, s), xys) -> go xys where
                         go xys' = (normalize xys') ++ go (step xys')
-                        normalize xys = sort $ map (\(x, y) -> (abs x, abs y)) xys
-                        step = map (\(x, y) -> (x * r + y * s * d, x * s + y * r))
-                        merge (x : y : ys)
-                            | x < y     = x : (merge (y : ys))
-                            | otherwise = merge (x : ys)
+                        normalize = sort . nub . map (abs *** abs) 
+                        step = map (mul d (r, s))
+
+equivalent :: Integer -> Integer -> (Integer, Integer) -> (Integer, Integer) -> Bool
+equivalent d n (x, y) (r, s) = (nDivides $ x * r - d * y * s) && (nDivides $ x * s - y * r) where
+    nDivides z = (z `mod` n) == 0
