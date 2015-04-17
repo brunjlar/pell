@@ -1,6 +1,7 @@
 module Math.NumberTheory.Pell.Test.Solve (
     Problem (..),
-    prop_solves) where
+    prop_solves,
+    naive) where
 
 import Control.Monad (liftM2)
 import Math.NumberTheory.Pell (solve)
