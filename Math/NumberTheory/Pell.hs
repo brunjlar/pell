@@ -1,5 +1,6 @@
-module Math.NumberTheory.Pell ( solve ) where
+module Math.NumberTheory.Pell ( solve, getReps, getMinimalReps, equivalent, mul, solvePlusOne ) where
 
+import Control.Arrow ((***))
 import Data.List (sort, nub)
 import Data.Ratio ((%))
 import Data.Set (toList)
@@ -32,53 +33,61 @@ getRS d m z =
 
 type Solution = (Integer, Integer)
 
-solve_plus_1 :: Integer -> Solution
-solve_plus_1 d = case getRS d 1 0 of
+solvePlusOne :: Integer -> Solution
+solvePlusOne d = case getRS d 1 0 of
     Just (r, s)
         | r * r - d * s * s == 1 -> (r, s)
         | otherwise              -> (r * r + d * s * s, let rs = r * s in rs + rs)
     Nothing                      -> error "algorithm error"
 
-solve_minus_one :: Integer -> Maybe Solution
-solve_minus_one d = case getRS d 1 0 of
+solveMinusOne :: Integer -> Maybe Solution
+solveMinusOne d = case getRS d 1 0 of
     Just (r, s)
         | r * r - d * s * s == (-1) -> Just (r, s)
         | otherwise                 -> Nothing
     Nothing                         -> error "algorithm error"
 
 getRep :: Integer -> Integer -> Integer -> Integer -> Integer -> Maybe Solution
-getRep d   1  _ _ _ = Just (solve_plus_1 d)
-getRep d (-1) _ _ _ = solve_minus_one d
+getRep d   1  _ _ _ = Just (solvePlusOne d)
+getRep d (-1) _ _ _ = solveMinusOne d
 getRep d   _  f m z = case getRS d m z of
                         Nothing                      -> Nothing
                         Just (r, s)
                             | r * r - d * s * s == m -> Just (f * r, f * s)
-                            | otherwise              -> case solve_minus_one d of
+                            | otherwise              -> case solveMinusOne d of
                                                             Nothing     -> Nothing
                                                             Just (t, u) -> Just (f * (r * t + s * u * d), f * (r * u + s * t))
+mul :: Integer -> Solution -> Solution -> Solution
+mul d (x, y) (r, s) = (x * r + y * s * d, x * s + y * r)
 
-getReps :: Integer -> Integer -> [Solution]
-getReps d n = do
-    (f, m, zs) <- fmzs d n
-    do
-        z <- zs
-        case getRep d n f m z of
-            Just (x, y) -> return (x, y)
-            Nothing     -> []
+getReps :: Integer -> Integer -> (Solution, [Solution])
+getReps d n = ((r, s), reps) where
+    (r, s) = solvePlusOne d
+    reps = do
+        (f, m, zs) <- fmzs d n
+        do
+            z <- zs
+            case getRep d n f m z of
+                Just (x, y) -> [if x >= 0 then (x, y) else mul d (r, s) (x, y)]
+                Nothing     -> []
+
+getMinimalReps :: Integer -> Integer -> (Solution, [Solution])
+getMinimalReps d n = ((r, s), map toMinimal reps) where
+    ((r, s), reps) = getReps d n
+    toMinimal (x, y) = minimum $ map (abs *** abs) $ filter (\(x', y') -> x' * y' >= 0) [(x, y), mul d (r, s) (x, y), mul d (r, -s) (x, y)]
 
 solve :: Integer -> Integer -> [Solution]
 solve d n 
     | d <= 0     = error $ "D must be positive, but D == " ++ show d ++ "."
     | isSquare d = error $ "D must not be a square, but D == " ++ show (integerSquareRoot d) ++ "^2."
     | n == 0     = error "N must not be zero."
-    | otherwise  = case getReps d n of 
-                    []  -> []
-                    xys -> merge $ go xys where
-                        (r, s) = solve_plus_1 d
-                        go xys' = (normalize xys') ++ go (step xys')
-                        normalize = sort . map (\(x, y) -> (abs x, abs y))
-                        step = map (\(x, y) -> (x * r + y * s * d, x * s + y * r))
-                        merge (x : y : ys)
-                            | x < y     = x : (merge (y : ys))
-                            | otherwise = merge (x : ys)
-                        merge _         = error "algorithm error"
+    | otherwise  = case getMinimalReps d n of 
+                    (_, [])       -> []
+                    ((r, s), xys) -> go xys where
+                        go xys' = normalize xys' ++ go (step xys')
+                        normalize = sort . nub
+                        step = map (mul d (r, s))
+
+equivalent :: Integer -> Integer -> (Integer, Integer) -> (Integer, Integer) -> Bool
+equivalent d n (x, y) (r, s) = nDivides (x * r - d * y * s) && nDivides (x * s - y * r) where
+    nDivides z = (z `mod` n) == 0

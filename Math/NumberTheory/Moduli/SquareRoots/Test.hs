@@ -21,4 +21,4 @@ naive :: Integer -> Integer -> [Integer]
 naive a m = [x | x <- [0 .. (m - 1)], (x * x - a) `mod` m == 0]
 
 prop_sqrts :: Problem -> Property
-prop_sqrts (Problem (a, m)) = (naive a m) === (sqrts a m) 
+prop_sqrts (Problem (a, m)) = naive a m === sqrts a m 
