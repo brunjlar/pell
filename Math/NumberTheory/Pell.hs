@@ -1,4 +1,21 @@
-module Math.NumberTheory.Pell ( solve, getReps, getMinimalReps, equivalent, mul, solvePlusOne ) where
+-- |
+-- Module:      Math.NumberTheory.Pell
+-- Copyright:   (c) 2015 by Dr. Lars Brünjes
+-- Licence:     MIT
+-- Maintainer:  Dr. Lars Brünjes <lbrunjes@gmx.de>
+-- Stability:   Provisional
+-- Portability: portable
+--
+-- This module provides a function to solve generalized Pell Equations, 
+-- using the "LMM Algorithm" described by John P. Robertson in
+-- <http://http://www.jpr2718.org/pell.pdf>.
+-- A /generalized Pell Equation/ is a diophantine equation of the form
+-- @x^2 - dy^2 = n@, where @d@ is a positive integer which is not a square
+-- and where @n@ is a non-zero integer.
+-- We are looking for solutions @(x,y)@, where @x@ and @y@ are non-negative integers.
+module Math.NumberTheory.Pell ( 
+    Solution,
+    solve ) where
 
 import Control.Arrow ((***))
 import Data.List (sort, nub)
@@ -31,6 +48,9 @@ getRS d m z =
             [] -> Nothing
             (rs : _) -> Just rs
 
+-- |Represents a solution to a generalized Pell Equation.
+-- The first component is the value of x,
+-- the second component that of y.
 type Solution = (Integer, Integer)
 
 solvePlusOne :: Integer -> Solution
@@ -78,6 +98,10 @@ getMinimalReps d n = ((r, s), map toMinimal reps) where
     ((r, s), reps) = getReps d n
     toMinimal (x, y) = minimum $ map (abs *** abs) $ filter (\(x', y') -> x' * y' >= 0) [(x, y), mul d (r, s) (x, y), mul d (r, -s) (x, y)]
 
+-- |@solve d n@ calculates all non-negative integer solutions of the generalized Pell Equation
+-- x^2 - @d@y^2 = @n@, 
+-- where @d@ must be a positive integer which is not a square,
+-- and @n@ must be a non-zero integer.
 solve :: Integer -> Integer -> [Solution]
 solve d n 
     | d <= 0     = error $ "D must be positive, but D == " ++ show d ++ "."
@@ -89,7 +113,3 @@ solve d n
                         go xys' = normalize xys' ++ go (step xys')
                         normalize = sort . nub
                         step = map (mul d (r, s))
-
-equivalent :: Integer -> Integer -> (Integer, Integer) -> (Integer, Integer) -> Bool
-equivalent d n (x, y) (r, s) = nDivides (x * r - d * y * s) && nDivides (x * s - y * r) where
-    nDivides z = (z `mod` n) == 0

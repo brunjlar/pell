@@ -1,4 +1,14 @@
-module Math.NumberTheory.Moduli.SquareRoots (sqrts) where
+-- |
+-- Module:      Math.NumberTheory.Moduli.SquareRoots
+-- Copyright:   (c) 2015 by Dr. Lars Brünjes
+-- Licence:     MIT
+-- Maintainer:  Dr. Lars Brünjes <lbrunjes@gmx.de>
+-- Stability:   Provisional
+-- Portability: portable
+--
+-- This module provides a function to find all square roots of a number modulo another number.
+module Math.NumberTheory.Moduli.SquareRoots (
+    sqrts ) where
 
 import Data.List (sort)
 import Math.NumberTheory.Primes.Factorisation (factorise)
@@ -31,6 +41,8 @@ sqrtsPP a (p, e)
     where
         m = p ^ e
 
+-- |@sqrts a m@ finds all square roots of @a@ modulo @m@,
+--  where @a@ is an arbitrary integer and @m@ is a positive integer.
 sqrts :: Integer -> Integer -> [Integer]
 sqrts a m
     | a <  0       = error $ "a must not be negative, but a == " ++ show a ++ " < 0."
