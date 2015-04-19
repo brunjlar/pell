@@ -28,7 +28,6 @@ sqrtsPP a (p, e)
     | otherwise            = do
                                 x <- sqrtsPP (a `div` (p * p)) (p, e - 2)
                                 takeWhile (< m) [p * x + i * p ^ (e - 1) | i <- [0..]]
---  | otherwise    = [x | x <- [0 .. (m - 1)], (x * x - a) `mod` m == 0] 
     where
         m = p ^ e
 
