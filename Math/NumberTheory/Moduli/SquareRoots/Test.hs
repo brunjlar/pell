@@ -1,8 +1,9 @@
-module Math.NumberTheory.Moduli.SquareRoots.Test (
-    prop_sqrtsPP,
-    prop_sqrts) where
+module Math.NumberTheory.Moduli.SquareRoots.Test
+    ( prop_sqrtsPP
+    , prop_sqrts
+    ) where
 
-import Data.Numbers.Primes (primes)
+import Data.Numbers.Primes                  (primes)
 import Math.NumberTheory.Moduli.SquareRoots (sqrts)
 import Test.QuickCheck
 
@@ -19,7 +20,7 @@ instance Arbitrary PrimePower where
             e <- choose (1, 20)
             return $ PrimePower (primes !! indexP, e)
 
-    shrink (PrimePower (p, e)) = 
+    shrink (PrimePower (p, e)) =
         map PrimePower $  [(p', e) | p' <- takeWhile (< p) primes] ++ [(p, e') | e' <- [1, e - 1]]
 
 newtype ProblemPP = ProblemPP (Integer, PrimePower) deriving (Show, Eq)
@@ -30,14 +31,14 @@ instance Arbitrary ProblemPP where
         pp <- arbitrary
         a <- choose (0, evalPP pp - 1)
         return $ ProblemPP (a, pp)
-    
+
     shrink (ProblemPP (a, pp)) =
         map ProblemPP $ [(a', pp) | a' <- [0, a - 1]] ++ [(a, pp') | pp' <- shrink pp, evalPP pp' > a]
 
 newtype Problem = Problem (Integer, Integer) deriving (Show, Eq)
 
 instance Arbitrary Problem where
-    
+
     arbitrary = do
         m <- suchThat arbitrary (> 0)
         a <- choose (0, m - 1)

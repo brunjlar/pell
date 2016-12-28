@@ -1,5 +1,6 @@
-module Math.NumberTheory.Pell.Test.Utils (
-    (~~) ) where
+module Math.NumberTheory.Pell.Test.Utils
+    ( (~~)
+    ) where
 
 import Test.QuickCheck
 

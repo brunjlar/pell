@@ -1,18 +1,19 @@
 -- |
 -- Module:      Math.NumberTheory.Moduli.SquareRoots
--- Copyright:   (c) 2015 by Dr. Lars Brünjes
+-- Copyright:   (c) 2016 by Dr. Lars Brünjes
 -- Licence:     MIT
--- Maintainer:  Dr. Lars Brünjes <lbrunjes@gmx.de>
+-- Maintainer:  Dr. Lars Brünjes <brunjlar@gmail.com>
 -- Stability:   Provisional
 -- Portability: portable
 --
 -- This module provides a function to find all square roots of a number modulo another number.
-module Math.NumberTheory.Moduli.SquareRoots (
-    sqrts ) where
+module Math.NumberTheory.Moduli.SquareRoots
+    ( sqrts
+    ) where
 
-import Data.List (sort)
+import Data.List                              (sort)
 import Math.NumberTheory.Primes.Factorisation (factorise)
-import Math.NumberTheory.Moduli (chineseRemainder, sqrtModPPList)
+import Math.NumberTheory.Moduli               (chineseRemainder, sqrtModPPList)
 
 chineseRemainders :: [([Integer], Integer)] -> [Integer]
 chineseRemainders = fst . go where

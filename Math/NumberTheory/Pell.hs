@@ -1,31 +1,32 @@
 -- |
 -- Module:      Math.NumberTheory.Pell
--- Copyright:   (c) 2015 by Dr. Lars Brünjes
+-- Copyright:   (c) 2016 by Dr. Lars Brünjes
 -- Licence:     MIT
--- Maintainer:  Dr. Lars Brünjes <lbrunjes@gmx.de>
+-- Maintainer:  Dr. Lars Brünjes <brunjlar@gmail.com>
 -- Stability:   Provisional
 -- Portability: portable
 --
--- This module provides a function to solve generalized Pell Equations, 
+-- This module provides a function to solve generalized Pell Equations,
 -- using the "LMM Algorithm" described by John P. Robertson in
--- <http://http://www.jpr2718.org/pell.pdf>.
+-- <http://www.jpr2718.org/pell.pdf>.
 -- A /generalized Pell Equation/ is a diophantine equation of the form
 -- @x^2 - dy^2 = n@, where @d@ is a positive integer which is not a square
 -- and where @n@ is a non-zero integer.
 -- We are looking for solutions @(x,y)@, where @x@ and @y@ are non-negative integers.
-module Math.NumberTheory.Pell ( 
-    Solution,
-    solve ) where
+module Math.NumberTheory.Pell
+    ( Solution
+    , solve
+    ) where
 
-import Control.Arrow ((***))
-import Data.List (sort, nub)
-import Data.Ratio ((%))
-import Data.Set (toList)
-import Math.NumberTheory.Moduli.SquareRoots (sqrts)
-import Math.NumberTheory.Pell.PQa (PQa(..), period)
-import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
-import Math.NumberTheory.Primes.Factorisation (divisors)
-                   
+import Control.Arrow                         ((***))
+import Data.List                             (sort, nub)
+import Data.Ratio                            ((%))
+import Data.Set                              (toList)
+import Math.NumberTheory.Moduli.SquareRoots  (sqrts)
+import Math.NumberTheory.Pell.PQa            (PQa(..), period)
+import Math.NumberTheory.Powers.Squares      (isSquare, integerSquareRoot)
+import Math.NumberTheory.ArithmeticFunctions (divisors)
+
 fmzs :: Integer -> Integer -> [(Integer, Integer, [Integer])]
 fmzs d n = map (\f -> let m = n `div` (f * f) in (f, m, zs m)) $ filter (\f -> (n `mod` (f * f)) == 0) $ toList $ divisors n where
 
@@ -36,12 +37,12 @@ fmzs d n = map (\f -> let m = n `div` (f * f) in (f, m, zs m)) $ filter (\f -> (
         am  = abs m
         am2 = floor (am % 2)
         norm x = if x <= am2 then x else x - am
-     
+
 getRS :: Integer -> Integer -> Integer -> Maybe (Integer, Integer)
-getRS d m z = 
+getRS d m z =
     let
         (_, pqas) = period z (abs m) d
-        qrs       = zipWith (\x y -> (q x, g y, b y)) (tail pqas) pqas 
+        qrs       = zipWith (\x y -> (q x, g y, b y)) (tail pqas) pqas
         rss       = map (\(_, r, s) -> (r, s)) $ filter (\(q', _, _) -> abs q' == 1) qrs
     in
         case rss of
@@ -99,15 +100,15 @@ getMinimalReps d n = ((r, s), map toMinimal reps) where
     toMinimal (x, y) = minimum $ map (abs *** abs) $ filter (\(x', y') -> x' * y' >= 0) [(x, y), mul d (r, s) (x, y), mul d (r, -s) (x, y)]
 
 -- |@solve d n@ calculates all non-negative integer solutions of the generalized Pell Equation
--- x^2 - @d@y^2 = @n@, 
+-- x^2 - @d@y^2 = @n@,
 -- where @d@ must be a positive integer which is not a square,
 -- and @n@ must be a non-zero integer.
 solve :: Integer -> Integer -> [Solution]
-solve d n 
+solve d n
     | d <= 0     = error $ "D must be positive, but D == " ++ show d ++ "."
     | isSquare d = error $ "D must not be a square, but D == " ++ show (integerSquareRoot d) ++ "^2."
     | n == 0     = error "N must not be zero."
-    | otherwise  = case getMinimalReps d n of 
+    | otherwise  = case getMinimalReps d n of
                     (_, [])       -> []
                     ((r, s), xys) -> go xys where
                         go xys' = normalize xys' ++ go (step xys')

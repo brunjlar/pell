@@ -1,27 +1,29 @@
-module Math.NumberTheory.Pell.PQa (
-    PQa(..),
-    pqa,
-    reduced, 
-    period) where
+module Math.NumberTheory.Pell.PQa
+    ( PQa(..)
+    , pqa
+    , reduced
+    , period
+    ) where
 
-import Data.Ratio ((%))
+import Data.Ratio                       ((%))
 import Math.NumberTheory.Powers.Squares (isSquare, integerSquareRoot)
 
-data PQa = PQa {
-    a  :: Integer,
-    b  :: Integer,
-    g  :: Integer,
-    a' :: Integer,
-    p  :: Integer,
-    q  :: Integer } deriving Show
-    
+data PQa = PQa
+    { a  :: Integer
+    , b  :: Integer
+    , g  :: Integer
+    , a' :: Integer
+    , p  :: Integer
+    , q  :: Integer
+    } deriving Show
+
 pqa :: Integer -> Integer -> Integer -> [PQa]
 pqa p0 q0 d
     | q0 == 0                     = error "Q0 must not be zero."
     | d <= 0                      = error "D must be positive."
     | isSquare d                  = error $ "D must not be a square, but D == " ++ show dd ++ "^2."
-    | (p0 * p0 - d) `mod` q0 /= 0 = error $ "P0^2 must be equivalent to D modulo Q0, but " 
-                                            ++ show p0 ++ "^2 == " ++ show (p0 `mod` q0) ++ " /= " ++ show (d `mod` q0) 
+    | (p0 * p0 - d) `mod` q0 /= 0 = error $ "P0^2 must be equivalent to D modulo Q0, but "
+                                            ++ show p0 ++ "^2 == " ++ show (p0 `mod` q0) ++ " /= " ++ show (d `mod` q0)
                                             ++ " == " ++ show d ++ " (mod " ++ show q0 ++ ")"
     | otherwise                   = go p0 q0 (PQa 0 1 (-p0) undefined undefined undefined) (PQa 1 0 q0 undefined undefined undefined)
     where
@@ -43,7 +45,7 @@ reduced :: Integer -> Integer -> Integer -> Bool
 reduced x y dd
     | y > 0     = (dd >= y - x) && (dd <  x + y) && (dd >= x)
     | otherwise = (dd <  y - x) && (dd >= x + y) && (dd <  x)
-    
+
 period :: Integer -> Integer -> Integer -> (Int, [PQa])
 period p0 q0 d = u [] 0 $ pqa p0 q0 d where
     dd = integerSquareRoot d
