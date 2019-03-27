@@ -48,4 +48,4 @@ sqrts :: Integer -> Integer -> [Integer]
 sqrts a m
     | a <  0       = error $ "a must not be negative, but a == " ++ show a ++ " < 0."
     | otherwise    = sort $ chineseRemainders $ map f $ factorise m where
-                        f (p, e) = (sqrtsPP (a `mod` p ^ e) (p, e), p ^ e)
+                        f (p, e) = (sqrtsPP (a `mod` p ^ e) (p, fromIntegral e), p ^ e)
