@@ -21,7 +21,7 @@ library
                      , Math.NumberTheory.Moduli.SquareRoots
   other-modules:       Math.NumberTheory.Pell.PQa
   build-depends:       base >=4.7 && <5
-                     , arithmoi
+                     , arithmoi >= 0.8
                      , containers
   default-language:    Haskell2010
   
