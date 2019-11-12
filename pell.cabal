@@ -2,7 +2,7 @@
 -- see http://haskell.org/cabal/users-guide/
 
 name:                pell
-version:             0.1.2.0
+version:             0.1.3.0
 synopsis:            Package to solve the Generalized Pell Equation.
 description:         Finds all solutions of the generalized Pell Equation.   
 homepage:            https://github.com/brunjlar/pell
@@ -51,4 +51,4 @@ source-repository head
 source-repository this
   type:                git
   location:            https://github.com/brunjlar/pell
-  tag:                 0.1.2.0
+  tag:                 0.1.3.0
